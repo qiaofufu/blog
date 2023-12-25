@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="Hexo Theme Redefine">
+    
+    <meta name="author" content="Qiao">
+    <!-- preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    
+    <!--- Seo Part-->
+    
+    <link rel="canonical" href="http://example.com/2023/12/25/常见负载均衡算法/"/>
+    <meta name="robots" content="index,follow">
+    <meta name="googlebot" content="index,follow">
+    <meta name="revisit-after" content="1 days">
+    
+        <meta name="description" content="负载均衡是分配网络或应用程序流量的方法, 以确保单个服务器或资源不过载, 从而提高系统的可用性和可靠性, 本篇文章将会介绍几个常见的负载均衡算法及其相应的代码实现 随机(Random)原理顾名思义, 就是随机分配服务节点给用户 特点随机分配, 实现简单 适用场景简单性要求, 无状态服务, 相对均匀的服务性能, 短持续服务时间 实现实现代码random.go123456789101112131415">
+<meta property="og:type" content="article">
+<meta property="og:title" content="常见负载均衡算法">
+<meta property="og:url" content="http://example.com/2023/12/25/%E5%B8%B8%E8%A7%81%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95/index.html">
+<meta property="og:site_name" content="Qiao">
+<meta property="og:description" content="负载均衡是分配网络或应用程序流量的方法, 以确保单个服务器或资源不过载, 从而提高系统的可用性和可靠性, 本篇文章将会介绍几个常见的负载均衡算法及其相应的代码实现 随机(Random)原理顾名思义, 就是随机分配服务节点给用户 特点随机分配, 实现简单 适用场景简单性要求, 无状态服务, 相对均匀的服务性能, 短持续服务时间 实现实现代码random.go123456789101112131415">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-12-25T09:24:00.000Z">
+<meta property="article:modified_time" content="2023-12-25T09:26:22.950Z">
+<meta property="article:author" content="Qiao">
+<meta property="article:tag" content="负载均衡">
+<meta property="article:tag" content="分布式">
+<meta name="twitter:card" content="summary">
+    
+    
+    <!--- Icon Part-->
+    <link rel="icon" type="image/png" href="/images/logo.png" sizes="192x192">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/logo.png">
+    <meta name="theme-color" content="#A31F34">
+    <link rel="shortcut icon" href="/images/logo.png">
+    <!--- Page Info-->
+    
+    <title>
+        
+            常见负载均衡算法 -
+        
+        blog
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+
+    
+        
+<link rel="stylesheet" href="/assets/build/styles.css">
+
+    
+
+    
+<link rel="stylesheet" href="/fonts/fonts.css">
+
+    
+<link rel="stylesheet" href="/fonts/Satoshi/satoshi.css">
+
+    
+<link rel="stylesheet" href="/fonts/Chillax/chillax.css">
+
+    <!--- Font Part-->
+    
+    
+    
+    
+
+    <!--- Inject Part-->
+    
+    <script id="hexo-configurations">
+    window.config = {"hostname":"example.com","root":"/","language":"zh-cn"};
+    window.theme = {"articles":{"style":{"font_size":"16px","line_height":1.5,"image_border_radius":"14px","image_alignment":"center","image_caption":false,"link_icon":true,"title_alignment":"left"},"word_count":{"enable":true,"count":true,"min2read":true},"author_label":{"enable":true,"auto":false,"list":[]},"code_block":{"copy":true,"style":"mac","font":{"enable":false,"family":null,"url":null}},"toc":{"enable":true,"max_depth":3,"number":false,"expand":true,"init_open":true},"copyright":{"enable":true,"default":"cc_by_nc_sa"},"lazyload":true,"recommendation":{"enable":false,"title":"推荐阅读","limit":3,"mobile_limit":2,"placeholder":"/images/wallhaven-wqery6-light.webp","skip_dirs":[]}},"colors":{"primary":"#A31F34","secondary":null},"global":{"fonts":{"chinese":{"enable":false,"family":null,"url":null},"english":{"enable":false,"family":null,"url":null}},"content_max_width":"1000px","sidebar_width":"210px","hover":{"shadow":true,"scale":false},"scroll_progress":{"bar":false,"percentage":true},"website_counter":{"url":"https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js","enable":true,"site_pv":true,"site_uv":true,"post_pv":true},"single_page":true,"open_graph":true,"google_analytics":{"enable":false,"id":null}},"home_banner":{"enable":true,"style":"fixed","image":{"light":"/images/wallhaven-wqery6-light.webp","dark":"/images/wallhaven-wqery6-dark.webp"},"title":"Keep learning","subtitle":{"text":[],"hitokoto":{"enable":false,"api":"https://v1.hitokoto.cn"},"typing_speed":100,"backing_speed":80,"starting_delay":500,"backing_delay":1500,"loop":true,"smart_backspace":true},"text_color":{"light":"#fff","dark":"#d1d1b6"},"text_style":{"title_size":"2.8rem","subtitle_size":"1.5rem","line_height":1.2},"custom_font":{"enable":false,"family":null,"url":null},"social_links":{"enable":true,"links":{"github":"https://github.com/qiaofufu","instagram":null,"zhihu":null,"twitter":null,"email":"707402933@qq.com"},"qrs":{"weixin":null}}},"plugins":{"feed":{"enable":false},"aplayer":{"enable":false,"type":"fixed","audios":[{"name":null,"artist":null,"url":null,"cover":null}]},"mermaid":{"enable":false,"version":"9.3.0"}},"version":"2.5.6","navbar":{"auto_hide":false,"color":{"left":"#f78736","right":"#367df7","transparency":35},"links":{"Home":{"path":"/","icon":"fa-regular fa-house"},"Admin":{"path":"/admin","icon":"fa-regular fa-circle-user"}},"search":{"enable":true,"preload":true}},"page_templates":{"friends_column":2,"tags_style":"blur"},"home":{"sidebar":{"enable":true,"position":"left","first_item":"menu","announcement":null,"links":null},"article_date_format":"auto","categories":{"enable":true,"limit":3},"tags":{"enable":true,"limit":3}},"footerStart":"2022/8/17 11:45:14"};
+    window.lang_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+    window.data = {"masonry":false};
+  </script>
+    
+    <!--- Fontawesome Part-->
+    
+<link rel="stylesheet" href="/fontawesome/fontawesome.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/brands.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/solid.min.css">
+
+    
+<link rel="stylesheet" href="/fontawesome/regular.min.css">
+
+    
+    
+    
+    
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+
+    
+        <span class="pjax-progress-bar"></span>
+        <span class="swup-progress-icon">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+        </span>
+    
+</div>
+
+
+<main class="page-container" id="swup">
+
+    
+
+    <div class="main-content-container">
+
+
+        <div class="main-content-header">
+            <header class="navbar-container">
+    
+    <div class="navbar-content">
+        <div class="left">
+            
+                <a class="logo-image" href="/">
+                    <img src="/images/logo.png">
+                </a>
+            
+            <a class="logo-title" href="/">
+                
+                blog
+                
+            </a>
+        </div>
+
+        <div class="right">
+            <!-- PC -->
+            <div class="desktop">
+                <ul class="navbar-list">
+                    
+                        
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class="" 
+                                    href="/"  >
+                                    
+                                        
+                                            <i class="fa-regular fa-house"></i>
+                                        
+                                        HOME
+                                    
+                                </a>
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                        
+                            <li class="navbar-item">
+                                <!-- Menu -->
+                                <a class="" 
+                                    href="/admin"  >
+                                    
+                                        
+                                            <i class="fa-regular fa-circle-user"></i>
+                                        
+                                        ADMIN
+                                    
+                                </a>
+                                <!-- Submenu -->
+                                
+                            </li>
+                    
+                    
+                        <li class="navbar-item search search-popup-trigger">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </li>
+                    
+                </ul>
+            </div>
+            <!-- Mobile -->
+            <div class="mobile">
+                
+                    <div class="icon-item search search-popup-trigger"><i class="fa-solid fa-magnifying-glass"></i></div>
+                
+                <div class="icon-item navbar-bar">
+                    <div class="navbar-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile drawer -->
+    <div class="navbar-drawer w-full absolute top-0 left-0 bg-background-color">
+        <ul class="drawer-navbar-list flex flex-col justify-start items-center">
+            
+                
+                    <li class="drawer-navbar-item text-base my-1.5 flex justify-center items-center">
+                        <a class="rounded-3xl py-1.5 px-5 hover:border hover:!text-primary active:!text-primary group " 
+                        href="/"  >
+                             
+                                
+                                    <i class="fa-regular fa-house"></i>
+                                
+                                HOME
+                            
+                        </a>
+                    </li>
+                    <!-- Submenu -->
+                    
+            
+                
+                    <li class="drawer-navbar-item text-base my-1.5 flex justify-center items-center">
+                        <a class="rounded-3xl py-1.5 px-5 hover:border hover:!text-primary active:!text-primary group " 
+                        href="/admin"  >
+                             
+                                
+                                    <i class="fa-regular fa-circle-user"></i>
+                                
+                                ADMIN
+                            
+                        </a>
+                    </li>
+                    <!-- Submenu -->
+                    
+            
+
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="main-content-body">
+
+            
+
+            <div class="main-content">
+
+                
+                    <div class="post-page-container">
+    <div class="article-content-container">
+
+        <div class="article-title relative w-full">
+            
+                <div class="w-full flex items-center pt-6 justify-start">
+                    <h1 class="article-title-regular text-second-text-color text-4xl md:text-6xl font-bold px-2 sm:px-6 md:px-8 py-3">常见负载均衡算法</h1>
+                </div>
+            
+            </div>
+
+        
+            <div class="article-header flex flex-row gap-2 items-center px-2 sm:px-6 md:px-8">
+                <div class="avatar w-[46px] h-[46px] flex-shrink-0 rounded-medium border border-border-color p-[1px]">
+                    <img src="/images/logo.png">
+                </div>
+                <div class="info flex flex-col justify-between">
+                    <div class="author flex items-center">
+                        <span class="name text-default-text-color text-lg font-semibold">Qiao</span>
+                        
+                            <span class="author-label ml-1.5 text-xs px-2 py-0.5 rounded-small text-third-text-color border border-shadow-color-1">Lv3</span>
+                        
+                    </div>
+                    <div class="meta-info">
+                        <div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fa-regular fa-pen-fancy"></i>&nbsp;
+        <span class="desktop">2023-12-25 17:24</span>
+        <span class="mobile">2023-12-25 17:24</span>
+        <span class="hover-info">Created</span>
+    </span>
+    
+        <span class="article-date article-meta-item">
+            <i class="fa-regular fa-wrench"></i>&nbsp;
+            <span class="desktop">2023-12-25 17:26:22</span>
+            <span class="mobile">2023-12-25 17:26:22</span>
+            <span class="hover-info">Updated</span>
+        </span>
+    
+
+    
+        <span class="article-categories article-meta-item">
+            <i class="fa-regular fa-folders"></i>&nbsp;
+            <ul>
+                
+                
+                    
+                        
+                        <li>
+                            <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>&nbsp;
+                        </li>
+                    
+                    
+                
+            </ul>
+        </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fa-regular fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/">负载均衡</a>&nbsp;
+                    </li>
+                
+                    <li>
+                        | <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">分布式</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+    
+    
+        <span class="article-pv article-meta-item">
+            <i class="fa-regular fa-eye"></i>&nbsp;<span id="busuanzi_value_page_pv"></span>
+        </span>
+    
+</div>
+
+                    </div>
+                </div>
+            </div>
+        
+
+        
+
+
+        <div class="article-content markdown-body px-2 sm:px-6 md:px-8 pb-8">
+            <p>负载均衡是分配网络或应用程序流量的方法, 以确保单个服务器或资源不过载, 从而提高系统的可用性和可靠性, 本篇文章将会介绍几个常见的负载均衡算法及其相应的代码实现</p>
+<h1 id="随机-Random"><a href="#随机-Random" class="headerlink" title="随机(Random)"></a>随机(Random)</h1><h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>顾名思义, 就是随机分配服务节点给用户</p>
+<h2 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h2><p>随机分配, 实现简单</p>
+<h2 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h2><p>简单性要求, 无状态服务, 相对均匀的服务性能, 短持续服务时间</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><h3 id="实现代码"><a href="#实现代码" class="headerlink" title="实现代码"></a>实现代码</h3><div class="highlight-container" data-rel="Go"><figure class="iseeu highlight go"><figcaption><span>random.go</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> load_balance  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> <span class="string">&quot;math/rand&quot;</span>  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">type</span> Random <span class="keyword">struct</span> &#123;  </span><br><span class="line">    server []*Server  </span><br><span class="line">&#125;  </span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewRandom</span><span class="params">()</span></span> *Random &#123;  </span><br><span class="line">    <span class="keyword">return</span> &amp;Random&#123;&#125;  </span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(r *Random)</span></span> Next() *Server &#123;  </span><br><span class="line">    idx := rand.Intn(<span class="built_in">len</span>(r.server))  </span><br><span class="line">    <span class="keyword">return</span> r.server[idx]  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(r *Random)</span></span> Add(server *Server) &#123;  </span><br><span class="line">    r.server = <span class="built_in">append</span>(r.server, server)  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h3 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h3><div class="highlight-container" data-rel="Go"><figure class="iseeu highlight go"><figcaption><span>random_test.go</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> load_balance  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> (  </span><br><span class="line">    <span class="string">&quot;strconv&quot;</span>  </span><br><span class="line">    <span class="string">&quot;testing&quot;</span></span><br><span class="line">   	)  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestRandom</span><span class="params">(t *testing.T)</span></span> &#123;  </span><br><span class="line">    r := NewRandom()  </span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">10</span>; i++ &#123;  </span><br><span class="line">       s := strconv.Itoa(i)  </span><br><span class="line">       t := Server(s)  </span><br><span class="line">       r.Add(&amp;t)  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">100</span>; i++ &#123;  </span><br><span class="line">       server := r.Next()  </span><br><span class="line">       server.Do()  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="轮讯-Round-Robin"><a href="#轮讯-Round-Robin" class="headerlink" title="轮讯(Round Robin)"></a>轮讯(Round Robin)</h1><h2 id="原理-1"><a href="#原理-1" class="headerlink" title="原理"></a>原理</h2><p>按顺序将请求分发给服务器. 每个新的请求都会分配到下一个服务器, 循环往复</p>
+<h2 id="特点-1"><a href="#特点-1" class="headerlink" title="特点"></a>特点</h2><p>简单, 易于实现</p>
+<h2 id="适用场景-1"><a href="#适用场景-1" class="headerlink" title="适用场景"></a>适用场景</h2><p>所有服务器性能相近</p>
+<h2 id="实现-1"><a href="#实现-1" class="headerlink" title="实现"></a>实现</h2><h3 id="实现代码-1"><a href="#实现代码-1" class="headerlink" title="实现代码"></a>实现代码</h3><div class="highlight-container" data-rel="Go"><figure class="iseeu highlight go"><figcaption><span>round_robin.go</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> load_balance  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> (  </span><br><span class="line">    <span class="string">&quot;fmt&quot;</span>  </span><br><span class="line">    <span class="string">&quot;sync&quot;</span></span><br><span class="line">    )  </span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Server <span class="type">string</span>  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *Server)</span></span> Do() &#123;  </span><br><span class="line">    fmt.Printf(<span class="string">&quot;[%v] server\n&quot;</span>, <span class="type">string</span>(*s))  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">type</span> RoundRobin <span class="keyword">struct</span> &#123;  </span><br><span class="line">    server []*Server    <span class="comment">// server 节点实例  </span></span><br><span class="line">    n      <span class="type">int</span>          <span class="comment">// server 个数  </span></span><br><span class="line">    idx    <span class="type">int</span>          <span class="comment">// 下一个节点指针  </span></span><br><span class="line">    mu     sync.RWMutex <span class="comment">// 读写锁  </span></span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewRoundRobin</span><span class="params">()</span></span> *RoundRobin &#123;  </span><br><span class="line">    <span class="keyword">return</span> &amp;RoundRobin&#123;&#125;  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(r *RoundRobin)</span></span> Next() *Server &#123;  </span><br><span class="line">    r.mu.RLock()  </span><br><span class="line">    <span class="keyword">defer</span> r.mu.RUnlock()  </span><br><span class="line">  </span><br><span class="line">    t := r.server[r.idx]  </span><br><span class="line">    r.idx = (r.idx + <span class="number">1</span>) % r.n  </span><br><span class="line">    <span class="keyword">return</span> t  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(r *RoundRobin)</span></span> Add(s *Server) &#123;  </span><br><span class="line">    r.mu.Lock()  </span><br><span class="line">    <span class="keyword">defer</span> r.mu.Unlock()  </span><br><span class="line">  </span><br><span class="line">    r.server = <span class="built_in">append</span>(r.server, s)  </span><br><span class="line">    r.n++  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h3 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h3><div class="highlight-container" data-rel="Go"><figure class="iseeu highlight go"><figcaption><span>round_robin_test.go</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> load_balance  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> (  </span><br><span class="line">    <span class="string">&quot;strconv&quot;</span>  </span><br><span class="line">    <span class="string">&quot;testing&quot;</span></span><br><span class="line">    )  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestRoundRobin</span><span class="params">(t *testing.T)</span></span> &#123;  </span><br><span class="line">    rr := NewRoundRobin()  </span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">10</span>; i++ &#123;  </span><br><span class="line">       s := strconv.Itoa(i)  </span><br><span class="line">       t := Server(s)  </span><br><span class="line">       rr.Add(&amp;t)  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">100</span>; i++ &#123;  </span><br><span class="line">       server := rr.Next()  </span><br><span class="line">       server.Do()  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="加权轮讯-Weighted-Round-Robin"><a href="#加权轮讯-Weighted-Round-Robin" class="headerlink" title="加权轮讯(Weighted Round Robin)"></a>加权轮讯(Weighted Round Robin)</h1><h2 id="原理-2"><a href="#原理-2" class="headerlink" title="原理"></a>原理</h2><p>每个服务器分配一个权重, 权重越高, 被选择的概率就越大</p>
+<h2 id="特点-2"><a href="#特点-2" class="headerlink" title="特点"></a>特点</h2><p>可以根据服务器性能进行灵活调整</p>
+<h2 id="适用场景-2"><a href="#适用场景-2" class="headerlink" title="适用场景"></a>适用场景</h2><p>服务器性能差异较大</p>
+<h2 id="实现-2"><a href="#实现-2" class="headerlink" title="实现"></a>实现</h2><h3 id="实现代码-2"><a href="#实现代码-2" class="headerlink" title="实现代码"></a>实现代码</h3><div class="highlight-container" data-rel="Go"><figure class="iseeu highlight go"><figcaption><span>weighted_round_robind.go</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> load_balance  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> (  </span><br><span class="line">    <span class="string">&quot;fmt&quot;</span>  </span><br><span class="line">    <span class="string">&quot;sync&quot;</span></span><br><span class="line">    )  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">type</span> WeightServer <span class="keyword">struct</span> &#123;  </span><br><span class="line">    Weight <span class="type">int</span>  </span><br><span class="line">    Info   <span class="type">string</span>  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *WeightServer)</span></span> Do() &#123;  </span><br><span class="line">    fmt.Printf(<span class="string">&quot;[%v] server\n&quot;</span>, w.Info)  </span><br><span class="line">  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">type</span> WeightedRoundRobin <span class="keyword">struct</span> &#123;  </span><br><span class="line">    server []*WeightServer  </span><br><span class="line">    ring   []<span class="type">int</span>  </span><br><span class="line">    idx    <span class="type">int</span>  </span><br><span class="line">    mu     sync.RWMutex  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewWeightedRoundRobin</span><span class="params">()</span></span> *WeightedRoundRobin &#123;  </span><br><span class="line">    <span class="keyword">return</span> &amp;WeightedRoundRobin&#123;&#125;  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *WeightedRoundRobin)</span></span> Next() *WeightServer &#123;  </span><br><span class="line">    w.mu.RLock()  </span><br><span class="line">    <span class="keyword">defer</span> w.mu.RUnlock()  </span><br><span class="line">  </span><br><span class="line">    idx := w.ring[w.idx]  </span><br><span class="line">    w.idx = (w.idx + <span class="number">1</span>) % <span class="built_in">len</span>(w.ring)  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">return</span> w.server[idx]  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *WeightedRoundRobin)</span></span> Add(s *WeightServer) &#123;  </span><br><span class="line">    w.mu.Lock()  </span><br><span class="line">    <span class="keyword">defer</span> w.mu.Unlock()  </span><br><span class="line">  </span><br><span class="line">    w.server = <span class="built_in">append</span>(w.server, s)  </span><br><span class="line">    idx := <span class="built_in">len</span>(w.server)  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; s.Weight; i++ &#123;  </span><br><span class="line">       w.ring = <span class="built_in">append</span>(w.ring, idx<span class="number">-1</span>)  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h3 id="测试代码-1"><a href="#测试代码-1" class="headerlink" title="测试代码"></a>测试代码</h3><div class="highlight-container" data-rel="Go"><figure class="iseeu highlight go"><figcaption><span>weighted_round_robin_test.go</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> load_balance  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> (  </span><br><span class="line">    <span class="string">&quot;strconv&quot;</span>  </span><br><span class="line">    <span class="string">&quot;testing&quot;</span></span><br><span class="line">    )  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestWeightedRoundRobin</span><span class="params">(t *testing.T)</span></span> &#123;  </span><br><span class="line">    rr := NewWeightedRoundRobin()  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">3</span>; i++ &#123;  </span><br><span class="line">       tmp := &amp;WeightServer&#123;  </span><br><span class="line">          Weight: i + <span class="number">1</span>,  </span><br><span class="line">          Info:   strconv.Itoa(i + <span class="number">1</span>),  </span><br><span class="line">       &#125;  </span><br><span class="line">       rr.Add(tmp)  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">10</span>; i++ &#123;  </span><br><span class="line">       s := rr.Next()  </span><br><span class="line">       s.Do()  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="最小连接数-Least-Connection"><a href="#最小连接数-Least-Connection" class="headerlink" title="最小连接数(Least Connection)"></a>最小连接数(Least Connection)</h1><h2 id="原理-3"><a href="#原理-3" class="headerlink" title="原理"></a>原理</h2><p>将请求分配给当前连接数量最少的服务器</p>
+<h2 id="特点-3"><a href="#特点-3" class="headerlink" title="特点"></a>特点</h2><p>动态调节, 可以确保负载相对均匀的分布(连接数最少的服务更有可能更快速的响应请求)</p>
+<h2 id="适用场景-3"><a href="#适用场景-3" class="headerlink" title="适用场景"></a>适用场景</h2><p>适用与无状态服务, 处理周期长, 性能动态变化的服务</p>
+<h2 id="实现-3"><a href="#实现-3" class="headerlink" title="实现"></a>实现</h2><h3 id="实现代码-3"><a href="#实现代码-3" class="headerlink" title="实现代码"></a>实现代码</h3><div class="highlight-container" data-rel="Go"><figure class="iseeu highlight go"><figcaption><span>least_connection.go</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> load_balance  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> (  </span><br><span class="line">    <span class="string">&quot;fmt&quot;</span>  </span><br><span class="line">    <span class="string">&quot;math/rand&quot;</span></span><br><span class="line">    <span class="string">&quot;sort&quot;</span></span><br><span class="line">    <span class="string">&quot;time&quot;</span></span><br><span class="line">    )  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">type</span> ConnectionServer <span class="keyword">struct</span> &#123;  </span><br><span class="line">    num  <span class="type">int</span>  </span><br><span class="line">    info <span class="type">string</span>  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *ConnectionServer)</span></span> Do() &#123;  </span><br><span class="line">    c.num++  </span><br><span class="line">    fmt.Printf(<span class="string">&quot;[%v] server\n&quot;</span>, c.info)  </span><br><span class="line">    n := time.Duration(rand.Intn(<span class="number">5</span>))  </span><br><span class="line">    time.Sleep(time.Second * n)  </span><br><span class="line">    c.num--  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">type</span> LeastConnection <span class="keyword">struct</span> &#123;  </span><br><span class="line">    server []*ConnectionServer  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewLeastConnection</span><span class="params">()</span></span> *LeastConnection &#123;  </span><br><span class="line">    <span class="keyword">return</span> &amp;LeastConnection&#123;&#125;  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(l *LeastConnection)</span></span> Next() *ConnectionServer &#123;  </span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(l.server) == <span class="number">0</span> &#123;  </span><br><span class="line">       <span class="built_in">panic</span>(<span class="string">&quot;server is nil&quot;</span>)  </span><br><span class="line">    &#125;  </span><br><span class="line">    sort.Slice(l.server, <span class="function"><span class="keyword">func</span><span class="params">(i, j <span class="type">int</span>)</span></span> <span class="type">bool</span> &#123;  </span><br><span class="line">       <span class="keyword">return</span> l.server[i].num &lt; l.server[j].num  </span><br><span class="line">    &#125;)  </span><br><span class="line">    <span class="keyword">return</span> l.server[<span class="number">0</span>]  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(l *LeastConnection)</span></span> Add(server *ConnectionServer) &#123;  </span><br><span class="line">    l.server = <span class="built_in">append</span>(l.server, server)  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h3 id="测试代码-2"><a href="#测试代码-2" class="headerlink" title="测试代码"></a>测试代码</h3><div class="highlight-container" data-rel="Go"><figure class="iseeu highlight go"><figcaption><span>least_connection_test.go</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> load_balance  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> (  </span><br><span class="line">    <span class="string">&quot;strconv&quot;</span>  </span><br><span class="line">    <span class="string">&quot;sync&quot;</span>    </span><br><span class="line">    <span class="string">&quot;testing&quot;</span></span><br><span class="line">    )  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestLeastConnection</span><span class="params">(t *testing.T)</span></span> &#123;  </span><br><span class="line">    num := <span class="number">20</span>  </span><br><span class="line">  </span><br><span class="line">    lc := NewLeastConnection()  </span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">3</span>; i++ &#123;  </span><br><span class="line">       lc.Add(&amp;ConnectionServer&#123;  </span><br><span class="line">          num:  <span class="number">0</span>,  </span><br><span class="line">          info: strconv.Itoa(i),  </span><br><span class="line">       &#125;)  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    wg := sync.WaitGroup&#123;&#125;  </span><br><span class="line">    wg.Add(num)  </span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; num; i++ &#123;  </span><br><span class="line">       <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;  </span><br><span class="line">          lc.Next().Do()  </span><br><span class="line">          wg.Done()  </span><br><span class="line">       &#125;()  </span><br><span class="line">    &#125;  </span><br><span class="line">    wg.Wait()  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+
+<h1 id="加权最小连接数-Weighted-Least-Connection"><a href="#加权最小连接数-Weighted-Least-Connection" class="headerlink" title="加权最小连接数(Weighted Least Connection)"></a>加权最小连接数(Weighted Least Connection)</h1><h2 id="原理-4"><a href="#原理-4" class="headerlink" title="原理"></a>原理</h2><p>根据连接数与权重的乘积值进行选择</p>
+<h2 id="特点-4"><a href="#特点-4" class="headerlink" title="特点"></a>特点</h2><p>结合了服务器权值和连接数的算法, 更加智能, 确保分配给每个服务器的连接数与其处理能力和权重成比例</p>
+<h2 id="适用场景-4"><a href="#适用场景-4" class="headerlink" title="适用场景"></a>适用场景</h2><p>服务器性能差异大, 动态环境</p>
+<h2 id="实现-4"><a href="#实现-4" class="headerlink" title="实现"></a>实现</h2><h3 id="实现代码-4"><a href="#实现代码-4" class="headerlink" title="实现代码"></a>实现代码</h3><div class="highlight-container" data-rel="Go"><figure class="iseeu highlight go"><figcaption><span>weighted_least_connection.go</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> load_balance  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> (  </span><br><span class="line">    <span class="string">&quot;fmt&quot;</span>  </span><br><span class="line">    <span class="string">&quot;math/rand&quot;</span>    </span><br><span class="line">    <span class="string">&quot;sort&quot;</span>    </span><br><span class="line">    <span class="string">&quot;sync&quot;</span>    </span><br><span class="line">    <span class="string">&quot;time&quot;</span></span><br><span class="line">    )  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">type</span> WeightedConnectionServer <span class="keyword">struct</span> &#123;  </span><br><span class="line">    weight <span class="type">int</span>  </span><br><span class="line">    num    <span class="type">int</span>  </span><br><span class="line">    info   <span class="type">string</span>  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *WeightedConnectionServer)</span></span> Do() &#123;  </span><br><span class="line">    c.num++  </span><br><span class="line">    fmt.Printf(<span class="string">&quot;[%v] server\n&quot;</span>, c.info)  </span><br><span class="line">    n := time.Duration(rand.Intn(<span class="number">5</span>))  </span><br><span class="line">    time.Sleep(time.Second * n)  </span><br><span class="line">    c.num--  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">type</span> WeightedLeastConnection <span class="keyword">struct</span> &#123;  </span><br><span class="line">    server []*WeightedConnectionServer  </span><br><span class="line">    mu     sync.RWMutex  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewWeightedLeastConnection</span><span class="params">()</span></span> *WeightedLeastConnection &#123;  </span><br><span class="line">    <span class="keyword">return</span> &amp;WeightedLeastConnection&#123;&#125;  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *WeightedLeastConnection)</span></span> Next() *WeightedConnectionServer &#123;  </span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(w.server) == <span class="number">0</span> &#123;  </span><br><span class="line">       <span class="built_in">panic</span>(<span class="string">&quot;server is nil&quot;</span>)  </span><br><span class="line">    &#125;  </span><br><span class="line">    w.mu.RLock()  </span><br><span class="line">    <span class="keyword">defer</span> w.mu.RUnlock()  </span><br><span class="line">  </span><br><span class="line">    sort.Slice(w.server, <span class="function"><span class="keyword">func</span><span class="params">(i, j <span class="type">int</span>)</span></span> <span class="type">bool</span> &#123;  </span><br><span class="line">       <span class="keyword">return</span> w.server[i].num*w.server[i].weight &lt; w.server[j].num*w.server[j].weight  </span><br><span class="line">    &#125;)  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">return</span> w.server[<span class="number">0</span>]  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(w *WeightedLeastConnection)</span></span> Add(s *WeightedConnectionServer) &#123;  </span><br><span class="line">    w.mu.Lock()  </span><br><span class="line">    <span class="keyword">defer</span> w.mu.Unlock()  </span><br><span class="line">  </span><br><span class="line">    w.server = <span class="built_in">append</span>(w.server, s)  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h3 id="测试代码-3"><a href="#测试代码-3" class="headerlink" title="测试代码"></a>测试代码</h3><div class="highlight-container" data-rel="Go"><figure class="iseeu highlight go"><figcaption><span>weighted_least_connection_test.go</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> load_balance  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> (  </span><br><span class="line">    <span class="string">&quot;strconv&quot;</span>  </span><br><span class="line">    <span class="string">&quot;sync&quot;</span>    </span><br><span class="line">    <span class="string">&quot;testing&quot;</span></span><br><span class="line">    )  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestWeightedLeastConnection</span><span class="params">(t *testing.T)</span></span> &#123;  </span><br><span class="line">    num := <span class="number">20</span>  </span><br><span class="line">  </span><br><span class="line">    lc := NewWeightedLeastConnection()  </span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">3</span>; i++ &#123;  </span><br><span class="line">       lc.Add(&amp;WeightedConnectionServer&#123;  </span><br><span class="line">          num:    <span class="number">0</span>,  </span><br><span class="line">          weight: i + <span class="number">1</span>,  </span><br><span class="line">          info:   strconv.Itoa(i + <span class="number">1</span>),  </span><br><span class="line">       &#125;)  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    wg := sync.WaitGroup&#123;&#125;  </span><br><span class="line">    wg.Add(num)  </span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; num; i++ &#123;  </span><br><span class="line">       <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;  </span><br><span class="line">          lc.Next().Do()  </span><br><span class="line">          wg.Done()  </span><br><span class="line">       &#125;()  </span><br><span class="line">    &#125;  </span><br><span class="line">    wg.Wait()  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h1 id="最小响应时间-Least-Response-Time"><a href="#最小响应时间-Least-Response-Time" class="headerlink" title="最小响应时间(Least Response Time)"></a>最小响应时间(Least Response Time)</h1><h2 id="原理-5"><a href="#原理-5" class="headerlink" title="原理"></a>原理</h2><p>为每一个服务维护一个响应时间属性, 每次选择响应时间(可以是平均值或者最新值)最小的服务</p>
+<h2 id="特点-5"><a href="#特点-5" class="headerlink" title="特点"></a>特点</h2><p>动态负载, 优先最小响应, 实时性要求高</p>
+<h2 id="适用场景-5"><a href="#适用场景-5" class="headerlink" title="适用场景"></a>适用场景</h2><p>适用与对响应时间有高要求的场景</p>
+<h2 id="实现-5"><a href="#实现-5" class="headerlink" title="实现"></a>实现</h2><h3 id="实现代码-5"><a href="#实现代码-5" class="headerlink" title="实现代码"></a>实现代码</h3><div class="highlight-container" data-rel="Go"><figure class="iseeu highlight go"><figcaption><span>least_response_time.go</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> load_balance  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> (  </span><br><span class="line">    <span class="string">&quot;fmt&quot;</span>  </span><br><span class="line">    <span class="string">&quot;log&quot;</span>    </span><br><span class="line">    <span class="string">&quot;math/rand&quot;</span>    </span><br><span class="line">    <span class="string">&quot;sort&quot;</span>   </span><br><span class="line">    <span class="string">&quot;sync&quot;</span>   </span><br><span class="line">    <span class="string">&quot;time&quot;</span></span><br><span class="line">    )  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">type</span> ResponseServer <span class="keyword">struct</span> &#123;  </span><br><span class="line">    responseTime time.Duration  </span><br><span class="line">    info         <span class="type">string</span>  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(r *ResponseServer)</span></span> Do() &#123;  </span><br><span class="line">    start := time.Now()  </span><br><span class="line">    fmt.Printf(<span class="string">&quot;[%v] server\n&quot;</span>, r.info)  </span><br><span class="line">    n := rand.Intn(<span class="number">4</span>)  </span><br><span class="line">    time.Sleep(time.Second * time.Duration(n))  </span><br><span class="line">    end := time.Now()  </span><br><span class="line">    r.responseTime = end.Sub(start)  </span><br><span class="line">    log.Println(<span class="string">&quot;response time: &quot;</span>, r.responseTime)  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">type</span> LeastResponseTime <span class="keyword">struct</span> &#123;  </span><br><span class="line">    server []*ResponseServer  </span><br><span class="line">    mu     sync.RWMutex  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewLeastResponseTime</span><span class="params">()</span></span> *LeastResponseTime &#123;  </span><br><span class="line">    <span class="keyword">return</span> &amp;LeastResponseTime&#123;&#125;  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(l *LeastResponseTime)</span></span> Next() *ResponseServer &#123;  </span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(l.server) == <span class="number">0</span> &#123;  </span><br><span class="line">       <span class="built_in">panic</span>(<span class="string">&quot;server is nil&quot;</span>)  </span><br><span class="line">    &#125;  </span><br><span class="line">    l.mu.RLock()  </span><br><span class="line">    <span class="keyword">defer</span> l.mu.RUnlock()  </span><br><span class="line">    sort.Slice(l.server, <span class="function"><span class="keyword">func</span><span class="params">(i, j <span class="type">int</span>)</span></span> <span class="type">bool</span> &#123;  </span><br><span class="line">       <span class="keyword">return</span> l.server[i].responseTime &lt; l.server[j].responseTime  </span><br><span class="line">    &#125;)  </span><br><span class="line">    <span class="keyword">return</span> l.server[<span class="number">0</span>]  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(l *LeastResponseTime)</span></span> Add(server *ResponseServer) &#123;  </span><br><span class="line">    l.mu.Lock()  </span><br><span class="line">    <span class="keyword">defer</span> l.mu.Unlock()  </span><br><span class="line">  </span><br><span class="line">    l.server = <span class="built_in">append</span>(l.server, server)  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h3 id="测试代码-4"><a href="#测试代码-4" class="headerlink" title="测试代码"></a>测试代码</h3><div class="highlight-container" data-rel="Go"><figure class="iseeu highlight go"><figcaption><span>least_response_time_test.go</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> load_balance  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> (  </span><br><span class="line">    <span class="string">&quot;strconv&quot;</span>  </span><br><span class="line">    <span class="string">&quot;sync&quot;</span>    </span><br><span class="line">    <span class="string">&quot;testing&quot;</span></span><br><span class="line">    )  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestLeastResponseTime</span><span class="params">(t *testing.T)</span></span> &#123;  </span><br><span class="line">    num := <span class="number">20</span>  </span><br><span class="line">  </span><br><span class="line">    lc := NewLeastResponseTime()  </span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">3</span>; i++ &#123;  </span><br><span class="line">       lc.Add(&amp;ResponseServer&#123;  </span><br><span class="line">          info: strconv.Itoa(i),  </span><br><span class="line">       &#125;)  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    wg := sync.WaitGroup&#123;&#125;  </span><br><span class="line">    wg.Add(num)  </span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; num; i++ &#123;  </span><br><span class="line">       <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;  </span><br><span class="line">          lc.Next().Do()  </span><br><span class="line">          wg.Done()  </span><br><span class="line">       &#125;()  </span><br><span class="line">    &#125;  </span><br><span class="line">    wg.Wait()  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+
+<h1 id="IP哈希-IP-Hash"><a href="#IP哈希-IP-Hash" class="headerlink" title="IP哈希(IP Hash)"></a>IP哈希(IP Hash)</h1><h2 id="原理-6"><a href="#原理-6" class="headerlink" title="原理"></a>原理</h2><p>对请求ip进行hash, 根据hash值选择服务器</p>
+<h2 id="特点-6"><a href="#特点-6" class="headerlink" title="特点"></a>特点</h2><p>实现简单, 同一用户的多次请求在同一个服务节点, 某种极端情况下, 当ip地址分布不均匀, 会出现负载不均衡</p>
+<h2 id="适用场景-6"><a href="#适用场景-6" class="headerlink" title="适用场景"></a>适用场景</h2><p>会话保持, 无状态服务, 缓存服务器</p>
+<h2 id="实现-6"><a href="#实现-6" class="headerlink" title="实现"></a>实现</h2><h3 id="实现代码-6"><a href="#实现代码-6" class="headerlink" title="实现代码"></a>实现代码</h3><div class="highlight-container" data-rel="Go"><figure class="iseeu highlight go"><figcaption><span>ip_hash.go</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> load_balance  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> (  </span><br><span class="line">    <span class="string">&quot;hash/crc32&quot;</span>  </span><br><span class="line">    <span class="string">&quot;sync&quot;</span></span><br><span class="line">    )  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">type</span> IPHash <span class="keyword">struct</span> &#123;  </span><br><span class="line">    server []*Server  </span><br><span class="line">    mu     sync.RWMutex  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewIPHash</span><span class="params">()</span></span> *IPHash &#123;  </span><br><span class="line">    <span class="keyword">return</span> &amp;IPHash&#123;&#125;  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(i *IPHash)</span></span> Next(ip <span class="type">string</span>) *Server &#123;  </span><br><span class="line">    i.mu.RLock()  </span><br><span class="line">    <span class="keyword">defer</span> i.mu.RUnlock()  </span><br><span class="line">  </span><br><span class="line">    sum := <span class="type">int</span>(crc32.ChecksumIEEE([]<span class="type">byte</span>(ip)))  </span><br><span class="line">    idx := sum % <span class="built_in">len</span>(i.server)  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">return</span> i.server[idx]  </span><br><span class="line">&#125;  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(i *IPHash)</span></span> Add(server *Server) &#123;  </span><br><span class="line">    i.mu.Lock()  </span><br><span class="line">    <span class="keyword">defer</span> i.mu.Unlock()  </span><br><span class="line">    i.server = <span class="built_in">append</span>(i.server, server)  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+
+<h3 id="测试代码-5"><a href="#测试代码-5" class="headerlink" title="测试代码"></a>测试代码</h3><div class="highlight-container" data-rel="Go"><figure class="iseeu highlight go"><figcaption><span>ip_hash_test.go</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> load_balance  </span><br><span class="line">  </span><br><span class="line"><span class="keyword">import</span> (  </span><br><span class="line">    <span class="string">&quot;reflect&quot;</span>  </span><br><span class="line">    <span class="string">&quot;strconv&quot;</span>   </span><br><span class="line">    <span class="string">&quot;testing&quot;</span></span><br><span class="line">    )  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestIPHash</span><span class="params">(t *testing.T)</span></span> &#123;  </span><br><span class="line">    r := NewIPHash()  </span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">10</span>; i++ &#123;  </span><br><span class="line">       s := strconv.Itoa(i)  </span><br><span class="line">       t := Server(s)  </span><br><span class="line">       r.Add(&amp;t)  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    ip := <span class="string">&quot;192.168.1.110&quot;</span>  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">if</span> !reflect.DeepEqual(r.Next(ip), r.Next(ip)) &#123;  </span><br><span class="line">       t.Fatal(<span class="string">&quot;failed&quot;</span>)  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div>
+        </div>
+
+        
+            <div class="post-copyright-info my-8 px-2 sm:px-6 md:px-8">
+                <div class="article-copyright-info-container">
+    <ul>
+        <li><strong>Title:</strong> 常见负载均衡算法</li>
+        <li><strong>Author:</strong> Qiao</li>
+        <li><strong>Created at
+                :</strong> 2023-12-25 17:24:00</li>
+        
+            <li>
+                <strong>Updated at
+                    :</strong> 2023-12-25 17:26:22
+            </li>
+        
+        <li>
+            <strong>Link:</strong> https://redefine.ohevan.com/2023/12/25/常见负载均衡算法/
+        </li>
+        <li>
+            <strong>
+                License:
+            </strong>
+            
+
+            
+                This work is licensed under <a class="license" target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a>.
+            
+        </li>
+    </ul>
+</div>
+
+            </div>
+        
+
+        
+            <ul class="post-tags-box">
+                
+                    <li class="tag-item">
+                        <a href="/tags/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/">#负载均衡</a>&nbsp;
+                    </li>
+                
+                    <li class="tag-item">
+                        <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">#分布式</a>&nbsp;
+                    </li>
+                
+            </ul>
+        
+
+        
+
+        
+            <div class="article-nav my-8 flex justify-between items-center px-2 sm:px-6 md:px-8">
+                
+                
+                    <div class="article-next border-border-color shadow-redefine-flat shadow-shadow-color-2 rounded-medium px-4 py-2 hover:shadow-redefine-flat-hover hover:shadow-shadow-color-2">
+                        <a class="next"
+                        rel="next"
+                        href="/2023/12/21/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B/"
+                        >
+                            <span class="title flex justify-center items-center">
+                                <span class="post-nav-title-item">计算机网络模型</span>
+                                <span class="post-nav-item">Next posts</span>
+                            </span>
+                            <span class="right arrow-icon flex justify-center items-center">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </span>
+                        </a>
+                    </div>
+                
+            </div>
+        
+
+
+        
+            <div class="comment-container px-2 sm:px-6 md:px-8 pb-8">
+                <div class="comments-container pjax">
+    <div id="comment-anchor"></div>
+    <div class="comment-area-title">
+        <i class="fa-solid fa-comments"></i>&nbsp;Comments
+    </div>
+    
+
+        
+            
+    <div id="waline"></div>
+    <script type="module" data-swup-reload-script>
+      import { init } from '/js/libs/waline.mjs';
+
+      function loadWaline() {
+        init({
+          el: '#waline',
+          serverURL: 'https://example.example.com',
+          lang: 'zh-CN',
+          dark: 'body[class~="dark-mode"]',
+          requiredMeta: ['nick', 'mail']
+        });
+      }
+
+      if (typeof swup !== 'undefined') {
+        loadWaline();
+      } else {
+        window.addEventListener('DOMContentLoaded', loadWaline);
+      }
+    </script>
+
+
+
+        
+    
+</div>
+
+            </div>
+        
+    </div>
+
+    
+        <div class="toc-content-container">
+            <div class="post-toc-wrap">
+    <div class="post-toc">
+        <div class="toc-title">On this page</div>
+        <div class="page-title">常见负载均衡算法</div>
+        <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%9A%8F%E6%9C%BA-Random"><span class="nav-text">随机(Random)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E7%90%86"><span class="nav-text">原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%B9%E7%82%B9"><span class="nav-text">特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-text">适用场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%A0%81"><span class="nav-text">实现代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E4%BB%A3%E7%A0%81"><span class="nav-text">测试代码</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BD%AE%E8%AE%AF-Round-Robin"><span class="nav-text">轮讯(Round Robin)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E7%90%86-1"><span class="nav-text">原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%B9%E7%82%B9-1"><span class="nav-text">特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF-1"><span class="nav-text">适用场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0-1"><span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%A0%81-1"><span class="nav-text">实现代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B"><span class="nav-text">测试用例</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AE%AF-Weighted-Round-Robin"><span class="nav-text">加权轮讯(Weighted Round Robin)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E7%90%86-2"><span class="nav-text">原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%B9%E7%82%B9-2"><span class="nav-text">特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF-2"><span class="nav-text">适用场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0-2"><span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%A0%81-2"><span class="nav-text">实现代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E4%BB%A3%E7%A0%81-1"><span class="nav-text">测试代码</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E8%BF%9E%E6%8E%A5%E6%95%B0-Least-Connection"><span class="nav-text">最小连接数(Least Connection)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E7%90%86-3"><span class="nav-text">原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%B9%E7%82%B9-3"><span class="nav-text">特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF-3"><span class="nav-text">适用场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0-3"><span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%A0%81-3"><span class="nav-text">实现代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E4%BB%A3%E7%A0%81-2"><span class="nav-text">测试代码</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8A%A0%E6%9D%83%E6%9C%80%E5%B0%8F%E8%BF%9E%E6%8E%A5%E6%95%B0-Weighted-Least-Connection"><span class="nav-text">加权最小连接数(Weighted Least Connection)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E7%90%86-4"><span class="nav-text">原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%B9%E7%82%B9-4"><span class="nav-text">特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF-4"><span class="nav-text">适用场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0-4"><span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%A0%81-4"><span class="nav-text">实现代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E4%BB%A3%E7%A0%81-3"><span class="nav-text">测试代码</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F%E5%93%8D%E5%BA%94%E6%97%B6%E9%97%B4-Least-Response-Time"><span class="nav-text">最小响应时间(Least Response Time)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E7%90%86-5"><span class="nav-text">原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%B9%E7%82%B9-5"><span class="nav-text">特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF-5"><span class="nav-text">适用场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0-5"><span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%A0%81-5"><span class="nav-text">实现代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E4%BB%A3%E7%A0%81-4"><span class="nav-text">测试代码</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#IP%E5%93%88%E5%B8%8C-IP-Hash"><span class="nav-text">IP哈希(IP Hash)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E7%90%86-6"><span class="nav-text">原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%B9%E7%82%B9-6"><span class="nav-text">特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF-6"><span class="nav-text">适用场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0-6"><span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%A0%81-6"><span class="nav-text">实现代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E4%BB%A3%E7%A0%81-5"><span class="nav-text">测试代码</span></a></li></ol></li></ol></li></ol>
+
+    </div>
+</div>
+        </div>
+    
+</div>
+
+
+
+                
+
+            </div>
+
+            
+
+        </div>
+
+        <div class="main-content-footer">
+            <footer class="footer mt-5 py-5 h-auto text-base text-third-text-color relative border-t-2 border-t-border-color">
+    <div class="info-container py-3 text-center">
+        
+        <div class="text-center">
+            &copy;
+            
+              <span>2022</span>
+              -
+            
+            2023&nbsp;&nbsp;<i class="fa-solid fa-heart fa-beat" style="--fa-animation-duration: 0.5s; color: #f54545"></i>&nbsp;&nbsp;<a href="/">Qiao</a>
+        </div>
+        
+            <script data-swup-reload-script src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+            <div class="relative text-center lg:absolute lg:right-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-right">
+                
+                    <span id="busuanzi_container_site_uv" class="lg:!block">
+                        <span class="text-sm">VISITOR COUNT</span>
+                        <span id="busuanzi_value_site_uv"></span>
+                    </span>
+                
+                
+                    <span id="busuanzi_container_site_pv" class="lg:!block">
+                        <span class="text-sm">TOTAL PAGE VIEWS</span>
+                        <span id="busuanzi_value_site_pv"></span>
+                    </span>
+                
+            </div>
+        
+        <div class="relative text-center lg:absolute lg:left-[20px] lg:top-1/2 lg:-translate-y-1/2 lg:text-left">
+            <span class="lg:block text-sm">POWERED BY <?xml version="1.0" encoding="utf-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg class="relative top-[2px] inline-block align-baseline" version="1.1" id="圖層_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="1rem" height="1rem" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve"><path fill="#0E83CD" d="M256.4,25.8l-200,115.5L56,371.5l199.6,114.7l200-115.5l0.4-230.2L256.4,25.8z M349,354.6l-18.4,10.7l-18.6-11V275H200v79.6l-18.4,10.7l-18.6-11v-197l18.5-10.6l18.5,10.8V237h112v-79.6l18.5-10.6l18.5,10.8V354.6z"/></svg><a target="_blank" class="text-base" href="https://hexo.io">Hexo</a></span>
+            <span class="text-sm lg:block">THEME&nbsp;<a class="text-base" target="_blank" href="https://github.com/EvanNotFound/hexo-theme-redefine">Redefine v2.5.6</a></span>
+        </div>
+        
+        
+            <div>
+                Blog up for <span class="odometer" id="runtime_days" ></span> days <span class="odometer" id="runtime_hours"></span> hrs <span class="odometer" id="runtime_minutes"></span> Min <span class="odometer" id="runtime_seconds"></span> Sec
+            </div>
+        
+        
+            <script data-swup-reload-script>
+                try {
+                    function odometer_init() {
+                    const elements = document.querySelectorAll('.odometer');
+                    elements.forEach(el => {
+                        new Odometer({
+                            el,
+                            format: '( ddd).dd',
+                            duration: 200
+                        });
+                    });
+                    }
+                    odometer_init();
+                } catch (error) {}
+            </script>
+        
+        
+        
+    </div>  
+</footer>
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="article-tools-list">
+        <!-- TOC aside toggle -->
+        
+            <li class="right-bottom-tools page-aside-toggle">
+                <i class="fa-regular fa-outdent"></i>
+            </li>
+        
+
+        <!-- go comment -->
+        
+            <li class="go-comment">
+                <i class="fa-regular fa-comments"></i>
+            </li>
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-side-tools-container">
+        <div class="side-tools-container">
+    <ul class="hidden-tools-list">
+        <li class="right-bottom-tools tool-font-adjust-plus flex justify-center items-center">
+            <i class="fa-regular fa-magnifying-glass-plus"></i>
+        </li>
+
+        <li class="right-bottom-tools tool-font-adjust-minus flex justify-center items-center">
+            <i class="fa-regular fa-magnifying-glass-minus"></i>
+        </li>
+
+        <li class="right-bottom-tools tool-dark-light-toggle flex justify-center items-center">
+            <i class="fa-regular fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+
+        <li class="right-bottom-tools tool-scroll-to-bottom flex justify-center items-center">
+            <i class="fa-regular fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="visible-tools-list">
+        <li class="right-bottom-tools toggle-tools-list flex justify-center items-center">
+            <i class="fa-regular fa-cog fa-spin"></i>
+        </li>
+        
+            <li class="right-bottom-tools tool-scroll-to-top flex justify-center items-center">
+                <i class="arrow-up fas fa-arrow-up"></i>
+                <span class="percent"></span>
+            </li>
+        
+        
+    </ul>
+</div>
+
+    </div>
+
+    <div class="image-viewer-container">
+    <img src="">
+</div>
+
+
+    
+        <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+          <span class="search-input-field-pre">
+            <i class="fa-solid fa-keyboard"></i>
+          </span>
+            <div class="search-input-container">
+                <input autocomplete="off"
+                       autocorrect="off"
+                       autocapitalize="off"
+                       placeholder="Search..."
+                       spellcheck="false"
+                       type="search"
+                       class="search-input"
+                >
+            </div>
+            <span class="popup-btn-close">
+                <i class="fa-solid fa-times"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fa-solid fa-spinner fa-spin-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</main>
+
+
+    
+<script src="/js/libs/Swup.min.js"></script>
+
+<script src="/js/libs/SwupSlideTheme.min.js"></script>
+
+<script src="/js/libs/SwupScriptsPlugin.min.js"></script>
+
+<script src="/js/libs/SwupProgressPlugin.min.js"></script>
+
+<script src="/js/libs/SwupScrollPlugin.min.js"></script>
+
+<script src="/js/libs/SwupPreloadPlugin.min.js"></script>
+
+<script>
+    const swup = new Swup({
+        plugins: [
+            new SwupScriptsPlugin({
+                optin: true,
+            }),
+            new SwupProgressPlugin(),
+            new SwupScrollPlugin({
+                offset: 80,
+            }),
+            new SwupSlideTheme({
+                mainElement: ".main-content-body",
+            }),
+            new SwupPreloadPlugin(),
+        ],
+        containers: ["#swup"],
+    });
+</script>
+
+
+
+
+
+
+
+<script src="/js/tools/imageViewer.js" type="module"></script>
+
+<script src="/js/utils.js" type="module"></script>
+
+<script src="/js/main.js" type="module"></script>
+
+<script src="/js/layouts/navbarShrink.js" type="module"></script>
+
+<script src="/js/tools/scrollTopBottom.js" type="module"></script>
+
+<script src="/js/tools/lightDarkSwitch.js" type="module"></script>
+
+<script src="/js/layouts/categoryList.js" type="module"></script>
+
+
+
+    
+<script src="/js/tools/localSearch.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/tools/codeBlock.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/layouts/lazyload.js" type="module"></script>
+
+
+
+
+    
+<script src="/js/tools/runtime.js"></script>
+
+    
+<script src="/js/libs/odometer.min.js"></script>
+
+    
+<link rel="stylesheet" href="/assets/odometer-theme-minimal.css">
+
+
+
+
+  
+<script src="/js/libs/Typed.min.js"></script>
+
+  
+<script src="/js/plugins/typed.js" type="module"></script>
+
+
+
+
+
+
+
+<div class="post-scripts" data-swup-reload-script>
+    
+        
+<script src="/js/libs/anime.min.js"></script>
+
+        
+<script src="/js/tools/tocToggle.js" type="module"></script>
+
+<script src="/js/layouts/toc.js" type="module"></script>
+
+<script src="/js/plugins/tabs.js" type="module"></script>
+
+    
+</div>
+
+
+</body>
+</html>
